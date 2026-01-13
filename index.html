@@ -1,37 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>FastAPI WebSockets</title>
-    <style>
-        body { font-family: sans-serif; margin: 40px; }
-        #messages { list-style-type: none; padding: 0; }
-        li { background: #f4f4f4; margin: 5px 0; padding: 10px; border-radius: 5px; }
-    </style>
+    <title>Live Chat</title>
+    <link rel="stylesheet" href="/public/main.css">
 </head>
 <body>
-    <h2>Real-time Chat</h2>
-    <input type="text" id="messageText" placeholder="Type a message..." autocomplete="off"/>
-    <button onclick="sendMessage()">Send</button>
+    <div class="container">
+        <div id="login-screen">
+            <h2>Your Username: </h2>
+            <form onsubmit="enterChat(event)">
+                <input type="text" id="username-input" placeholder="Enter your username" required />
+                <br>
+                <button type="submit">Join</button>
+            </form>
+        </div>
 
-    <ul id='messages'></ul>
+        <div id="room-screen">
+            <div class="sidebar">
+                <h3 id="welcome-msg"></h3>
+                <div class="users-section">
+                    <h4>Active Users</h4>
+                    <ul id="active-users-list"></ul>
+                </div>
+                <div class="users-section">
+                    <h4>History</h4>
+                    <ul id="history-users-list"></ul>
+                </div>
+            </div>
+            
+            <div class="chat-container">
+                <div id="messages-container">
+                    <ul id='messages'></ul>
+                </div>
+                <div class="input-area">
+                    <input type="text" id="messageText" placeholder="Type a message..." autocomplete="off"/>
+                    <button onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <script>
-        var ws = new WebSocket("ws://localhost:8006/ws");
-
-        ws.onmessage = function(event) {
-            var messages = document.getElementById('messages');
-            var message = document.createElement('li');
-            message.textContent = event.data;
-            messages.prepend(message); // Put newest at the top
-        };
-
-        function sendMessage() {
-            var input = document.getElementById("messageText");
-            if (input.value) {
-                ws.send(input.value);
-                input.value = '';
-            }
-        }
-    </script>
+    <script src="/public/main.js"></script>
 </body>
 </html>

@@ -1,0 +1,113 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: sans-serif;
+    background-color: #1E1A4D;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 100vw;
+    height: 100vh;
+    margin: 0 auto;
+}
+
+#login-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 80vh;
+}
+
+#login-screen input {
+    padding: 10px;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+#login-screen button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+
+
+
+#room-screen {
+    margin: 0 auto;
+    display: none;
+    padding: 20px;
+    height: 100vh;
+    gap: 20px;
+}
+
+.sidebar {
+    flex: 1;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 30px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 40vw;
+}
+
+.chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    padding: 20px;
+    height: auto;
+    gap: 10px;
+}
+
+.input-area {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+#messages-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    padding: 20px;
+    height: auto;
+}
+
+#messageText {
+    flex: 1;
+    padding: 20px;
+    border-radius: 5px;
+    border: none;
+}
+
+#room-screen h2, #room-screen h3, .sidebar h4 {
+    margin-top: 0;
+    color: white;
+}
+
+#messages {
+    list-style-type: none;
+    padding: 0;
+    flex: 1;
+    overflow-y: auto;
+    margin: 0;
+}
+
+li {
+    background: #f4f4f4;
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 5px;
+}
