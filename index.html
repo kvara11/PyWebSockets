@@ -7,8 +7,8 @@
 <body>
     <div class="container">
         <div id="login-screen">
-            <h2>Your Username: </h2>
-            <form onsubmit="enterChat(event)">
+            <h2 class="txt">Your Username: </h2>
+            <form onsubmit="login(event)">
                 <input type="text" id="username-input" placeholder="Enter your username" required />
                 <br>
                 <button type="submit">Join</button>
@@ -17,7 +17,11 @@
 
         <div id="room-screen">
             <div class="sidebar">
-                <h3 id="welcome-msg"></h3>
+                <div class="welcome-section">
+                    <h3 id="welcome-msg"></h3>
+                    <button onclick="logout()">Logout</button>
+                </div>
+
                 <div class="users-section">
                     <h4>Active Users</h4>
                     <ul id="active-users-list"></ul>
