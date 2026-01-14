@@ -1,7 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import json
 from fastapi.responses import FileResponse
-from database import init_db, user_exists, save_user, save_message
+from database import init_db, get_user, save_user, save_message
 from socket_conn import manager
 from fastapi.staticfiles import StaticFiles
 
@@ -20,18 +20,20 @@ async def get():
 
 
 @app.get("/auth")
-async def get_users(username: str):
-    user = user_exists(username)
+async def login(username: str):
+    print(username)
+    user = get_user(username)
     if user:
         return {"data": user}
     else:
         save_user(username)
-        return {"data": user_exists(username)}
+        return {"data": get_user(username)}
 
 
 @app.websocket("/live")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
+    user_id = None
     username = None
 
     try:
@@ -39,22 +41,23 @@ async def websocket_endpoint(websocket: WebSocket):
             data = json.loads(await websocket.receive_text())
 
             if data["type"] == "join":
-                username = data["username"]
-                await manager.add_user(username, websocket)
+                user = data["user"]
+                user_id = user["id"]
+                username = user["username"]
+                if user_id:
+                    await manager.add_user(user_id, websocket, username)
 
             if data["type"] == "message":
                 target = data["to"]
-                content = data["content"]
-
+                content = data["text"]
+                
                 message = {
                     "type": "message",
-                    "content": f"{username}: {content}",
-                    "is_private": True
+                    "text": f"{username}: {content}",
                 }
 
-                # await manager.send_private(target, message)
-                await manager.send_private(username, message)
+                await manager.send_message(user_id, message)
 
     except WebSocketDisconnect:
-        if username:
-            await manager.remove_user(username)
+        if user_id:
+            await manager.remove_user(user_id)

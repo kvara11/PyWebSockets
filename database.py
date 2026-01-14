@@ -30,7 +30,8 @@ def create_schema(db):
     conn.commit()
     conn.close()
 
-def user_exists(username: str):
+
+def get_user(username: str):
     with sqlite3.connect(DB_NAME) as conn:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
@@ -46,8 +47,9 @@ def save_user(username: str):
         cursor.execute("INSERT INTO users (username, active) VALUES (?, 1)", (username,))
         conn.commit()
 
-def save_message(message: str):
+
+def save_message(user_id: int, message: str):
     with sqlite3.connect(DB_NAME) as conn:
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO messages (content) VALUES (?)", (message,))
+        cursor.execute("INSERT INTO messages (user_id, msg) VALUES (?, ?)", (user_id, message))
         conn.commit()

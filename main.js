@@ -7,7 +7,7 @@ let username = null;
 window.addEventListener("load", () => {
     const liveUser = sessionStorage.getItem("live_user");
     if (liveUser) {
-        startChat(JSON.parse(liveUser).username);
+        startChat(JSON.parse(liveUser));
     } else {
         showLogin();
     }
@@ -20,13 +20,15 @@ async function login(event) {
     event.preventDefault();
     const username = document.getElementById("username-input").value;
     if (!username) return alert("Please enter a username");
-    
+
     const response = await fetch(`/auth?username=${encodeURIComponent(username)}`);
     const data = await response.json();
-    
+
     if (data?.data) {
-        sessionStorage.setItem("live_user", JSON.stringify({id: data.data.id, username: data.data.username}));
-        startChat(data.data.username);
+        const currentUser = { id: data.data.id, username: data.data.username };
+
+        sessionStorage.setItem("live_user", JSON.stringify(currentUser));
+        startChat(currentUser);
     } else {
         return alert('No Access!')
     }
@@ -41,22 +43,22 @@ function logout() {
 }
 
 
-function startChat(username) {
+function startChat(user) {
 
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('room-screen').style.display = 'flex';
-    document.getElementById('welcome-msg').innerText = `Welcome, ${username}`;
+    document.getElementById('welcome-msg').innerText = `Welcome, ${user.username}`;
+
+    const data = JSON.stringify({
+        type: "join",
+        user: user
+    });
 
     ws = new WebSocket(`ws://localhost:8006/live`);
-
-    // ?username=${encodeURIComponent(username)}
     ws.onopen = () => {
-        ws.send(JSON.stringify({
-            type: "join",
-            username: username
-        }));
+        ws.send(data);
     };
-    
+
 
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
@@ -64,13 +66,12 @@ function startChat(username) {
         if (data.type === "message") {
             const messages = document.getElementById("messages");
             const li = document.createElement("li");
-            li.textContent = data.content;
-            if (data.is_private) li.style.color = "red";
+            li.textContent = data.text;
             messages.prepend(li);
         }
 
         if (data.type === "users") {
-            renderUsers(data.list);
+            renderUsers(data.users);
         }
     };
 }
@@ -83,16 +84,16 @@ function showLogin() {
 
 
 function renderUsers(users) {
-    const username = JSON.parse(sessionStorage.getItem("live_user")).username;
+    const userId = JSON.parse(sessionStorage.getItem("live_user")).id;
     const list = document.getElementById("active-users-list");
-    
-    list.innerHTML = "";
 
+    list.innerHTML = "";
+    
     users.forEach(user => {
-        if (user === username) return;
-        
+        if (user.id === userId) return;
+
         const div = document.createElement("div");
-        div.textContent = user;
+        div.textContent = user.username;
         div.classList.add("user-item");
         div.onclick = () => selectUser(user, div);
 
@@ -107,13 +108,12 @@ function renderUsers(users) {
 
 function selectUser(user, element) {
     selectedUser = user;
-    
     document.querySelectorAll("#active-users-list div").forEach(div => div.classList.remove("selected"));
-    
+
     element.classList.add("selected");
     document.getElementById("messageText").disabled = false;
     document.getElementById("messageBtn").disabled = false;
-    document.getElementById("messageText").placeholder = `Message to ${user}...`;
+    document.getElementById("messageText").placeholder = `Message to ${user.username}...`;
 }
 
 function sendMessage() {
@@ -122,8 +122,8 @@ function sendMessage() {
 
     ws.send(JSON.stringify({
         type: "message",
-        to: selectedUser,
-        content: input.value
+        to: selectedUser.id,
+        text: input.value
     }));
 
     input.value = "";
