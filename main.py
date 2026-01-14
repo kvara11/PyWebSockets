@@ -1,7 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import json
 from fastapi.responses import FileResponse
-from database import init_db, save_message
+from database import init_db, user_exists, save_user, save_message
 from socket_conn import manager
 from fastapi.staticfiles import StaticFiles
 
@@ -9,24 +9,24 @@ from fastapi.staticfiles import StaticFiles
 app = FastAPI()
 app.mount("/public", StaticFiles(directory="."), name="public")
 
-# Initialize DB on startup
-# @app.on_event("startup")
-# def startup_event():
-#     init_db()
 
-# Route to serve the HTML file
+@app.on_event("startup")
+def startup_event():
+    init_db()
+
 @app.get("/")
 async def get():
     return FileResponse("index.html")
 
-# @app.get("/room")
-# async def get_chat():
-#     return FileResponse("chat.html")
 
-@app.get("/users")
-async def get_users():
-    return {"active_users": manager.get_active_users()}
-
+@app.get("/auth")
+async def get_users(username: str):
+    user = user_exists(username)
+    if user:
+        return {"data": user}
+    else:
+        save_user(username)
+        return {"data": user_exists(username)}
 
 
 @app.websocket("/live")

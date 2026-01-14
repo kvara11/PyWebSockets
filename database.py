@@ -12,8 +12,8 @@ def create_schema(db):
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL UNIQUE
-            active INTEGER DEFAULT 1,
+            username TEXT NOT NULL UNIQUE,
+            active INTEGER DEFAULT 1
         )
     ''')
 
@@ -23,12 +23,28 @@ def create_schema(db):
             user_id INTEGER NOT NULL,
             msg TEXT NOT NULL,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-            is_deleted INTEGER DEFAULT 0,
+            is_deleted INTEGER DEFAULT 0
         )
     ''')
 
     conn.commit()
     conn.close()
+
+def user_exists(username: str):
+    with sqlite3.connect(DB_NAME) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+
+        row = cursor.fetchone()
+        return dict(row) if row else None
+
+
+def save_user(username: str):
+    with sqlite3.connect(DB_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO users (username, active) VALUES (?, 1)", (username,))
+        conn.commit()
 
 def save_message(message: str):
     with sqlite3.connect(DB_NAME) as conn:

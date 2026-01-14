@@ -5,7 +5,7 @@ let username = null;
 
 // event listeners:
 window.addEventListener("load", () => {
-    const savedUsername = sessionStorage.getItem("chat_username");
+    const savedUsername = sessionStorage.getItem("live_username");
     if (savedUsername) {
         startChat(savedUsername);
     }
@@ -13,20 +13,28 @@ window.addEventListener("load", () => {
 
 
 // functions:
-function login(event) {
+async function login(event) {
 
     event.preventDefault();
     const username = document.getElementById("username-input").value;
-    if (!username) return;
-
-    sessionStorage.setItem("chat_username", username);
-    startChat(username);
+    if (!username) return alert("Please enter a username");
+    
+    const response = await fetch(`/auth?username=${encodeURIComponent(username)}`);
+    const data = await response.json();
+    
+    if (data?.data) {
+        sessionStorage.setItem("live_user", {id: data.data.id, username: data.data.username});
+        startChat(data.data.username);
+    } else {
+        return alert('No Access!')
+    }
 }
 
 
 function logout() {
-    sessionStorage.removeItem("chat_username");
+    sessionStorage.removeItem("live_user");
     if (ws) ws.close();
+    
     location.reload();
 }
 
@@ -67,9 +75,8 @@ function startChat(username) {
 
 
 function renderUsers(users) {
-    const username = sessionStorage.getItem("chat_username");
+    const username = sessionStorage.getItem("live_username");
     const list = document.getElementById("active-users-list");
-    console.log(username);
     
     list.innerHTML = "";
 
