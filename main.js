@@ -5,9 +5,11 @@ let username = null;
 
 // event listeners:
 window.addEventListener("load", () => {
-    const savedUsername = sessionStorage.getItem("live_username");
-    if (savedUsername) {
-        startChat(savedUsername);
+    const liveUser = sessionStorage.getItem("live_user");
+    if (liveUser) {
+        startChat(JSON.parse(liveUser).username);
+    } else {
+        showLogin();
     }
 });
 
@@ -23,7 +25,7 @@ async function login(event) {
     const data = await response.json();
     
     if (data?.data) {
-        sessionStorage.setItem("live_user", {id: data.data.id, username: data.data.username});
+        sessionStorage.setItem("live_user", JSON.stringify({id: data.data.id, username: data.data.username}));
         startChat(data.data.username);
     } else {
         return alert('No Access!')
@@ -34,8 +36,8 @@ async function login(event) {
 function logout() {
     sessionStorage.removeItem("live_user");
     if (ws) ws.close();
-    
     location.reload();
+    showLogin();
 }
 
 
@@ -73,9 +75,14 @@ function startChat(username) {
 }
 
 
+function showLogin() {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('room-screen').style.display = 'none';
+}
+
 
 function renderUsers(users) {
-    const username = sessionStorage.getItem("live_username");
+    const username = JSON.parse(sessionStorage.getItem("live_user")).username;
     const list = document.getElementById("active-users-list");
     
     list.innerHTML = "";
