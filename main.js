@@ -56,6 +56,7 @@ function startChat(username) {
             username: username
         }));
     };
+    
 
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
@@ -106,13 +107,13 @@ function renderUsers(users) {
 
 function selectUser(user, element) {
     selectedUser = user;
-
-    document.querySelectorAll("#active-users-list li")
-        .forEach(li => li.style.fontWeight = "normal");
     
-    element.style.fontWeight = "bold";
-    document.getElementById("messageText").placeholder =
-        `Message to ${user}...`;
+    document.querySelectorAll("#active-users-list div").forEach(div => div.classList.remove("selected"));
+    
+    element.classList.add("selected");
+    document.getElementById("messageText").disabled = false;
+    document.getElementById("messageBtn").disabled = false;
+    document.getElementById("messageText").placeholder = `Message to ${user}...`;
 }
 
 function sendMessage() {

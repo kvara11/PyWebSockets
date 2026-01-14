@@ -11,7 +11,7 @@
             <form onsubmit="login(event)">
                 <input type="text" id="username-input" placeholder="..." />
                 <br>
-                <button type="submit">Join</button>
+                <button id="loginBtn" type="submit">Join</button>
             </form>
         </div>
 
@@ -19,7 +19,7 @@
             <div class="sidebar">
                 <div class="welcome-section">
                     <h3 id="welcome-msg"></h3>
-                    <button onclick="logout()">Logout</button>
+                    <button id="logoutBtn" onclick="logout()">Logout</button>
                 </div>
 
                 <div class="users-section">
@@ -37,8 +37,8 @@
                     <ul id='messages'></ul>
                 </div>
                 <div class="input-area">
-                    <input type="text" id="messageText" placeholder="Type a message..." autocomplete="off"/>
-                    <button onclick="sendMessage()">Send</button>
+                    <input type="text" id="messageText" placeholder="Type a message..." autocomplete="off" disabled/>
+                    <button onclick="sendMessage()" id="messageBtn" disabled> Send</button>
                 </div>
             </div>
         </div>
