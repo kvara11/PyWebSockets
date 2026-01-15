@@ -1,6 +1,7 @@
 let ws = null;
 let selectedUser = null;
 let username = null;
+let activeUser = [];
 
 
 // event listeners:
@@ -12,6 +13,19 @@ window.addEventListener("load", () => {
         showLogin();
     }
 });
+
+// window.addEventListener("keydown", (event) => {
+//     console.log(2,event);
+
+//     if (event.key === "Enter") {
+//         const liveUser = sessionStorage.getItem("live_user");
+//         if (liveUser) {
+//             startChat(JSON.parse(liveUser));
+//         } else {
+//             showLogin();
+//         }
+//     }
+// });
 
 
 // functions:
@@ -45,16 +59,21 @@ function logout() {
 
 function startChat(user) {
 
+    if (!user) {
+        showLogin();
+        return;
+    }
+
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('room-screen').style.display = 'flex';
     document.getElementById('welcome-msg').innerText = `Welcome, ${user.username}`;
 
+    ws = new WebSocket(`ws://localhost:8006/live`);
+    
     const data = JSON.stringify({
         type: "join",
         user: user
     });
-
-    ws = new WebSocket(`ws://localhost:8006/live`);
     ws.onopen = () => {
         ws.send(data);
     };
@@ -64,15 +83,29 @@ function startChat(user) {
         const data = JSON.parse(event.data);
 
         if (data.type === "message") {
-            const messages = document.getElementById("messages");
-            const li = document.createElement("li");
-            li.textContent = data.text;
-            messages.prepend(li);
+            if ((selectedUser?.id && data.from === selectedUser?.id) || data.from === JSON.parse(sessionStorage.getItem("live_user")).id) {
+                renderMessage(data.from, data.text);
+            } else {
+                renderMessageAlert(data.from);
+            }
         }
 
         if (data.type === "users") {
+            activeUser = [...data.users];
             renderUsers(data.users);
         }
+
+        if (data.type === "history") {
+            data.data.forEach(msg => {
+                const text = `${msg.username}: ${msg.msg}`;
+                renderMessage(msg.user_id, text);
+            });
+        }
+        
+        if (data.type === "join") {
+            renderUsers(data.contacts, true);
+        }
+
     };
 }
 
@@ -83,18 +116,21 @@ function showLogin() {
 }
 
 
-function renderUsers(users) {
+function renderUsers(users, contacts = false) {
     const userId = JSON.parse(sessionStorage.getItem("live_user")).id;
-    const list = document.getElementById("active-users-list");
+
+    const divId = contacts ? "history-users-list" : "active-users-list";
+    const list = document.getElementById(divId);
 
     list.innerHTML = "";
-    
+
     users.forEach(user => {
         if (user.id === userId) return;
 
         const div = document.createElement("div");
         div.textContent = user.username;
         div.classList.add("user-item");
+        div.classList.add(`userId-${user.id}`);
         div.onclick = () => selectUser(user, div);
 
         if (selectedUser === user) {
@@ -106,7 +142,25 @@ function renderUsers(users) {
 }
 
 
+function renderMessage(user_id, text) {
+    const messages = document.getElementById("messages");
+    const li = document.createElement("li");
+
+    li.textContent = text;
+    li.style.backgroundColor = selectedUser?.id == user_id ? "#D8F999" : "#E0E7FF";
+
+    messages.append(li);
+}
+
+function renderMessageAlert(userId) {
+    const userElement = document.querySelector(`.userId-${userId}`);
+    userElement.classList.add("new-msg");
+}
+
+
 function selectUser(user, element) {
+    if (selectedUser?.id == user.id) return;
+
     selectedUser = user;
     document.querySelectorAll("#active-users-list div").forEach(div => div.classList.remove("selected"));
 
@@ -114,6 +168,8 @@ function selectUser(user, element) {
     document.getElementById("messageText").disabled = false;
     document.getElementById("messageBtn").disabled = false;
     document.getElementById("messageText").placeholder = `Message to ${user.username}...`;
+
+    getHistory();
 }
 
 function sendMessage() {
@@ -127,4 +183,11 @@ function sendMessage() {
     }));
 
     input.value = "";
+}
+
+function getHistory() {
+    ws.send(JSON.stringify({
+        type: "history",
+        target: selectedUser.id,
+    }));
 }

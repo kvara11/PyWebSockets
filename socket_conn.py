@@ -36,5 +36,15 @@ class ConnectionManager:
         if ws:
             await ws["ws"].send_text(json.dumps(message))
 
+    async def send_history(self, user_id: int, data: list):
+
+        message = json.dumps({
+            "type": "history",
+            "data": data
+        })
+
+        ws = self.active_users.get(user_id)
+        if ws:
+            await ws["ws"].send_text(message)
 
 manager = ConnectionManager()

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import json
 from fastapi.responses import FileResponse
-from database import init_db, get_user, save_user, save_message
+from database import init_db, get_user, save_user, save_message, get_messages, get_contacts_history
 from socket_conn import manager
 from fastapi.staticfiles import StaticFiles
 
@@ -21,10 +21,10 @@ async def get():
 
 @app.get("/auth")
 async def login(username: str):
-    print(username)
     user = get_user(username)
     if user:
-        return {"data": user}
+        contacts = get_contacts_history(user["id"])
+        return {"data": user, "contacts": contacts}
     else:
         save_user(username)
         return {"data": get_user(username)}
@@ -46,6 +46,13 @@ async def websocket_endpoint(websocket: WebSocket):
                 username = user["username"]
                 if user_id:
                     await manager.add_user(user_id, websocket, username)
+                
+                message = {
+                    "type": "join",
+                    "contacts": get_contacts_history(user_id)
+                }
+
+                await manager.send_message(user_id, message)
 
             if data["type"] == "message":
                 target = data["to"]
@@ -54,9 +61,19 @@ async def websocket_endpoint(websocket: WebSocket):
                 message = {
                     "type": "message",
                     "text": f"{username}: {content}",
+                    "from": user_id
                 }
+                
+                save_message(user_id, target, content)
 
+                await manager.send_message(target, message)
                 await manager.send_message(user_id, message)
+
+            if data["type"] == "history":
+                target = data["target"]
+                messages = list(get_messages(user_id, target))
+                
+                await manager.send_history(user_id, messages)
 
     except WebSocketDisconnect:
         if user_id:

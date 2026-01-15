@@ -87,6 +87,7 @@ body {
     border-radius: 30px;
     padding: 20px;
     height: auto;
+    overflow-y: auto;
 }
 
 #messageText {
@@ -150,7 +151,6 @@ body {
 }
 
 li {
-    background: #f4f4f4;
     margin: 5px 0;
     padding: 10px;
     border-radius: 5px;
@@ -182,4 +182,22 @@ li {
     background-color: #FFC9C9;
     color: #1E1A4D;
     font-weight: bold;
+}
+
+
+.new-msg {
+    animation: newMsg 0.5s ease-in-out;
+    background-color: #FFC9C9;
+}
+
+@keyframes newMsg {
+    0% {
+        background-color: #FFC9C9;
+    }
+    50% {
+        background-color: #FFC9C9;
+    }
+    100% {
+        background-color: #f0f0f0;
+    }
 }
