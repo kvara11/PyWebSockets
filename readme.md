@@ -11,7 +11,7 @@ Simple chat application. Enter your username, select connected user, view chat h
 - HTML/CSS
 
 
-## 🚀 Run Project:
+## 🚀 Run the Project:
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
