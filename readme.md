@@ -1,16 +1,18 @@
-Description:
-Live Chat Application with WebSocket and SQLite Database.
-Enter your username, select connected user and send message.
+# Description:
+Live Chat Application with Python, WebSocket and SQLite Database.
+Simple chat application. Enter your username, select connected user, view chat history, and send messages.
 
 
-Run Project:
-source .venv/bin/activate
-uvicorn main:app --reload --host 127.0.0.1 --port 8006
-
-
-Tech Stack:
+# Tech Stack:
 - Python + FastAPI
 - WebSocket
 - JavaScript
 - SQLite
 - HTML/CSS
+
+
+# 🚀 Run Project:
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --reload --host 127.0.0.1 --port 8006
