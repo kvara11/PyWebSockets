@@ -2,6 +2,7 @@ let ws = null;
 let selectedUser = null;
 let username = null;
 let activeUser = [];
+let contactUsers = [];
 
 
 // event listeners:
@@ -14,18 +15,15 @@ window.addEventListener("load", () => {
     }
 });
 
-// window.addEventListener("keydown", (event) => {
-//     console.log(2,event);
-
-//     if (event.key === "Enter") {
-//         const liveUser = sessionStorage.getItem("live_user");
-//         if (liveUser) {
-//             startChat(JSON.parse(liveUser));
-//         } else {
-//             showLogin();
-//         }
-//     }
-// });
+window.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+        const messageInput = document.getElementById("messageText");
+        if (document.activeElement === messageInput) {
+            sendMessage();
+            return;
+        }
+    }
+});
 
 
 // functions:
@@ -93,9 +91,11 @@ function startChat(user) {
         if (data.type === "users") {
             activeUser = [...data.users];
             renderUsers(data.users);
+            renderContactUsers();
         }
 
         if (data.type === "history") {
+            document.getElementById("messages").innerHTML = "";
             data.data.forEach(msg => {
                 const text = `${msg.username}: ${msg.msg}`;
                 renderMessage(msg.user_id, text);
@@ -103,7 +103,8 @@ function startChat(user) {
         }
         
         if (data.type === "join") {
-            renderUsers(data.contacts, true);
+            contactUsers = [...data.contacts];
+            renderContactUsers();
         }
 
     };
@@ -133,7 +134,7 @@ function renderUsers(users, contacts = false) {
         div.classList.add(`userId-${user.id}`);
         div.onclick = () => selectUser(user, div);
 
-        if (selectedUser === user) {
+        if (selectedUser?.id === user.id) {
             div.classList.add("selected");
         }
 
@@ -163,6 +164,7 @@ function selectUser(user, element) {
 
     selectedUser = user;
     document.querySelectorAll("#active-users-list div").forEach(div => div.classList.remove("selected"));
+    document.querySelectorAll("#history-users-list div").forEach(div => div.classList.remove("selected"));
 
     element.classList.add("selected");
     document.getElementById("messageText").disabled = false;
@@ -190,4 +192,9 @@ function getHistory() {
         type: "history",
         target: selectedUser.id,
     }));
+}
+
+function renderContactUsers() {
+    const filteredContacts = contactUsers.filter(c => !activeUser.some(a => a.id === c.id));
+    renderUsers(filteredContacts, true);
 }
