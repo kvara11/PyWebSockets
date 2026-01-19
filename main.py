@@ -75,6 +75,12 @@ async def websocket_endpoint(websocket: WebSocket):
                 
                 await manager.send_history(user_id, messages)
 
+            if data["type"] == "":
+                target = data["target"]
+                messages = list(get_messages(user_id, target))
+                
+                await manager.send_history(user_id, messages)
+
     except WebSocketDisconnect:
         if user_id:
             await manager.remove_user(user_id)

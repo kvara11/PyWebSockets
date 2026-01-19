@@ -81,6 +81,7 @@ function startChat(user) {
         const data = JSON.parse(event.data);
 
         if (data.type === "message") {
+            addContact(data.from);
             if ((selectedUser?.id && data.from === selectedUser?.id) || data.from === JSON.parse(sessionStorage.getItem("live_user")).id) {
                 renderMessage(data.from, data.text);
             } else {
@@ -96,9 +97,14 @@ function startChat(user) {
 
         if (data.type === "history") {
             document.getElementById("messages").innerHTML = "";
+            data.data.sort((a, b) => {
+                return new Date(a.timestamp) - new Date(b.timestamp);
+            });
+
             data.data.forEach(msg => {
                 const text = `${msg.username}: ${msg.msg}`;
-                renderMessage(msg.user_id, text);
+                const time = msg.timestamp;
+                renderMessage(msg.user_id, text, time);
             });
         }
         
@@ -143,15 +149,34 @@ function renderUsers(users, contacts = false) {
 }
 
 
-function renderMessage(user_id, text) {
+function renderMessage(user_id, text, time) {
     const messages = document.getElementById("messages");
     const li = document.createElement("li");
 
-    li.textContent = text;
-    li.style.backgroundColor = selectedUser?.id == user_id ? "#D8F999" : "#E0E7FF";
+    li.style.display = "flex";
+    li.style.flexDirection = "row-reverse";
+    li.style.alignItems = "center";
+    li.style.justifyContent = "space-between";
+    li.style.padding = "8px 12px";
+    li.style.marginBottom = "6px";
+    li.style.borderRadius = "6px";
 
+    li.style.backgroundColor =
+        selectedUser?.id == user_id ? "#D8F999" : "#E0E7FF";
+
+    const messageText = document.createElement("div");
+    messageText.textContent = text;
+
+    const timeText = document.createElement("span");
+    timeText.textContent = time;
+    timeText.style.fontSize = "11px";
+    timeText.style.color = "#555";
+    timeText.style.marginBottom = "4px";
+
+    li.append(timeText, messageText);
     messages.append(li);
 }
+
 
 function renderMessageAlert(userId) {
     const userElement = document.querySelector(`.userId-${userId}`);
@@ -178,6 +203,7 @@ function sendMessage() {
     const input = document.getElementById("messageText");
     if (!input.value || !selectedUser) return;
 
+    addContact(selectedUser.id);
     ws.send(JSON.stringify({
         type: "message",
         to: selectedUser.id,
@@ -197,4 +223,14 @@ function getHistory() {
 function renderContactUsers() {
     const filteredContacts = contactUsers.filter(c => !activeUser.some(a => a.id === c.id));
     renderUsers(filteredContacts, true);
+}
+
+function addContact(userId) {
+    if (!contactUsers.some(u => u.id === userId)) {
+        const user = activeUser.find(u => u.id === userId);
+        if (user) {
+            contactUsers.push(user);
+            renderContactUsers();
+        }
+    }
 }
